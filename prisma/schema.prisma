@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  status    String   @default("waiting") // waiting, starting, in-progress, finished
+  text      String
+  startTime DateTime?
+  createdAt DateTime @default(now())
+  players   Player[]
+}
+
+model Player {
+  id         String   @id @default(cuid())
+  name       String
+  roomId     String
+  room       Room     @relation(fields: [roomId], references: [id])
+  progress   Int      @default(0)
+  wpm        Int      @default(0)
+  finishedAt DateTime?
+}
