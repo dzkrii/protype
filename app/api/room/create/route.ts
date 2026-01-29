@@ -5,32 +5,51 @@ function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
 }
 
-// Hardcoded quote for now
-const QUOTES = [
-  "The quick brown fox jumps over the lazy dog. Programming is thinking, not typing.",
-  "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune.",
-  "It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness.",
-  "All that we see or seem is but a dream within a dream.",
-  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-  "In the middle of difficulty lies opportunity.",
-  "Do not go gentle into that good night, Old age should burn and rave at close of day."
+const FALLBACK_QUOTES = [
+  "Pendidikan adalah senjata paling ampuh yang bisa kamu gunakan untuk mengubah dunia.",
+  "Keberhasilan bukanlah kunci kebahagiaan. Kebahagiaanlah kunci keberhasilan.",
+  "Jangan tanyakan apa yang negara berikan kepadamu, tanyakan apa yang kamu berikan kepada negaramu.",
+  "Hidup itu seperti bersepeda. Untuk menjaga keseimbangan, Anda harus terus bergerak.",
+  "Ilmu adalah harta yang tidak akan pernah habis meskipun terus dibagikan kepada orang lain."
 ];
 
-function getRandomQuote() {
-  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+async function getRandomIndonesianText(): Promise<string> {
+  try {
+    // Fetch a random summary from Indonesian Wikipedia
+    const res = await fetch('https://id.wikipedia.org/api/rest_v1/page/random/summary', {
+      next: { revalidate: 0 } // Ensure we don't cache the random result
+    });
+    
+    if (!res.ok) throw new Error('Wikipedia API failed');
+    
+    const data = await res.json();
+    let text = data.extract || '';
+    
+    // Clean up text: only take the first 1-2 sentences and remove parentheticals
+    text = text.replace(/\s\([^)]*\)/g, ""); // Remove (anything inside)
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    
+    // Join first 2 sentences if short, or just use 1
+    const result = (sentences.length > 1 && sentences[0].length < 100) 
+      ? sentences.slice(0, 2).join(' ').trim()
+      : sentences[0].trim();
+
+    return result || FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
+  } catch (error) {
+    console.error('Text fetch error:', error);
+    return FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const code = generateCode()
-    
-    // Ensure code uniqueness (simple retry)
-    // In production, better collision handling is needed
+    const text = await getRandomIndonesianText()
     
     const room = await prisma.room.create({
       data: {
         code,
-        text: getRandomQuote(),
+        text: text,
         status: 'waiting'
       }
     })
