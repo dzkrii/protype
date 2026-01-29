@@ -24,6 +24,7 @@ type Room = {
   text: string
   status: 'waiting' | 'starting' | 'in-progress' | 'finished'
   startTime: string | null
+  hostId: string | null
   players: Player[]
 }
 
@@ -96,10 +97,13 @@ export default function RoomPage() {
     }
   }, [code])
 
-  // 3. Start Game Logic (Admin/Host) - For simplicity anyone can start for now? 
-  // Let's allow anyone to start if it's 'waiting'.
+  // 3. Start Game Logic (Host Only)
   const startGame = async () => {
-    await fetch(`/api/room/${code}/start`, { method: 'POST' })
+    if (!playerId) return
+    await fetch(`/api/room/${code}/start`, { 
+      method: 'POST',
+      body: JSON.stringify({ playerId })
+    })
   }
 
   // 4. Typing Logic
@@ -234,17 +238,22 @@ export default function RoomPage() {
                                           {p.name[0].toUpperCase()}
                                       </div>
                                       <span className="flex-1">{p.name}</span>
-                                      {p.id === playerId && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-tighter">Host</span>}
+                                      {p.id === room.hostId && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase tracking-tighter">Host</span>}
                                   </motion.div>
                               ))}
                           </div>
                       </div>
 
-                      {playerId && (
+                      {playerId && room.hostId === playerId && (
                           <Button onClick={startGame} className="w-full h-14 text-xl font-black italic tracking-tight group" size="lg">
                             START RACE
                             <Flag className="ml-2 h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                           </Button>
+                      )}
+                      {playerId && room.hostId !== playerId && (
+                          <div className="text-center text-sm font-medium text-muted-foreground animate-pulse p-4 border border-dashed rounded-xl">
+                              Waiting for host to start...
+                          </div>
                       )}
                   </CardContent>
               </Card>

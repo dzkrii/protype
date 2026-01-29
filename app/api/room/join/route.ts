@@ -28,9 +28,17 @@ export async function POST(request: Request) {
       }
     })
 
+    // If room has no host, this player is the host
+    if (!room.hostId) {
+      await prisma.room.update({
+        where: { id: room.id },
+        data: { hostId: player.id }
+      })
+    }
+
     return NextResponse.json({ playerId: player.id })
   } catch (error) {
     console.error('Failed to join:', error)
-     return NextResponse.json({ error: 'Failed to join' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to join' }, { status: 500 })
   }
 }
