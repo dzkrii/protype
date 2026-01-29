@@ -55,13 +55,13 @@ export default function Home() {
       
       <div className="grid gap-8 w-full max-w-lg relative z-10 transition-all duration-500 ease-in-out">
         <div className="text-center space-y-3">
-            <h1 className="text-6xl font-extrabold tracking-tighter text-primary drop-shadow-sm">ProType</h1>
+            <h1 className="text-6xl font-extrabold tracking-tighter text-primary drop-shadow-sm font-heading">ProType</h1>
             <p className="text-muted-foreground text-lg font-medium">Unlimited multiplayer typing races.</p>
         </div>
 
         <Card className="border-border/50 shadow-xl backdrop-blur-sm bg-card/80">
             <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold">Join a Race</CardTitle>
+                <CardTitle className="text-2xl font-bold font-heading">Join a Race</CardTitle>
                 <CardDescription className="text-base text-muted-foreground/80">Enter a room code to join an existing race.</CardDescription>
             </CardHeader>
             <CardContent>

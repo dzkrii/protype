@@ -39,6 +39,10 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
+  --font-sans: var(--font-plus-jakarta), sans-serif;
+  --font-heading: var(--font-outfit), sans-serif;
+  --font-mono: var(--font-mono), monospace;
+
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
@@ -123,6 +127,10 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: inherit;
+  }
+  html {
+    font-family: var(--font-plus-jakarta), sans-serif;
   }
   body {
     @apply bg-background text-foreground;

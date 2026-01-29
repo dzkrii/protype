@@ -187,7 +187,7 @@ export default function RoomPage() {
                        <div className="mx-auto bg-primary/10 p-3 rounded-2xl w-fit mb-2">
                           <Users className="h-8 w-8 text-primary"/>
                        </div>
-                      <CardTitle className="text-3xl font-black tracking-tighter">
+                      <CardTitle className="text-3xl font-black tracking-tighter font-heading">
                         ROOM LOBBY
                       </CardTitle>
                       <p className="font-mono text-primary font-bold tracking-[0.3em] bg-primary/5 py-1 rounded">
@@ -270,7 +270,7 @@ export default function RoomPage() {
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
              <div className="space-y-1">
-                <h2 className="text-3xl font-black tracking-tighter flex items-center gap-3">
+                <h2 className="text-3xl font-black tracking-tighter flex items-center gap-3 font-heading">
                     <span className="bg-primary text-primary-foreground px-3 py-1 rounded-lg">PRO</span>
                     ROOM {room.code}
                 </h2>
@@ -447,7 +447,7 @@ export default function RoomPage() {
                             </motion.div>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-4xl font-black tracking-tighter italic">RACE COMPLETE</h3>
+                            <h3 className="text-4xl font-black tracking-tighter italic font-heading">RACE COMPLETE</h3>
                             <p className="text-muted-foreground font-medium text-lg italic">Impressive speed, racer!</p>
                         </div>
                         <div className="flex justify-center gap-8 pt-4">
@@ -472,7 +472,7 @@ export default function RoomPage() {
                 {/* ROOM LEADERBOARD */}
                 <Card className="border-border/50 shadow-xl bg-card/50 backdrop-blur-md overflow-hidden">
                     <CardHeader className="border-b bg-muted/20">
-                        <CardTitle className="text-lg flex items-center gap-2">
+                        <CardTitle className="text-lg flex items-center gap-2 font-heading">
                             <Trophy className="h-5 w-5 text-yellow-500" />
                             Final Standings
                         </CardTitle>
