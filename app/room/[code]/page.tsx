@@ -279,45 +279,48 @@ export default function RoomPage() {
              </div>
         </div>
 
-        {/* PROGRESS TRACK */}
-        <Card className="border-border/50 shadow-xl bg-card/50 backdrop-blur-md relative z-10 overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-primary/20" />
-            <CardContent className="p-6 md:p-8 space-y-6">
-                <h3 className="text-sm uppercase tracking-[0.2em] font-bold text-muted-foreground/60 flex items-center gap-2">
-                    <Flag className="h-4 w-4" /> Progress Track
-                </h3>
-                <div className="space-y-6">
-                    {room.players.slice().sort((a, b) => b.progress - a.progress).map((p, idx) => (
-                        <div key={p.id} className="relative group">
-                            <div className="flex justify-between items-end text-sm mb-2">
-                                <span className={cn(
-                                    "font-bold transition-all flex items-center gap-2", 
-                                    p.id === playerId ? "text-primary text-base" : "text-muted-foreground group-hover:text-foreground"
-                                )}>
-                                    {idx + 1}. {p.name} {p.id === playerId && "(You)"}
-                                    {p.finishedAt && <Trophy className="h-4 w-4 text-yellow-500" />}
-                                </span>
-                                <div className="flex items-center gap-3 font-mono">
-                                    <span className="text-muted-foreground/60">{p.progress}%</span>
-                                    <span className="font-black text-primary bg-primary/5 px-2 py-0.5 rounded">{p.wpm} WPM</span>
+        {/* PERSONAL PROGRESS TRACK (Minimized) */}
+        {room.status === 'in-progress' && playerId && (() => {
+            const me = room.players.find(p => p.id === playerId);
+            if (!me) return null;
+            return (
+                <Card className="border-border/50 shadow-xl bg-card/50 backdrop-blur-md relative z-10 overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+                    <CardContent className="p-4 md:p-6 flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black">
+                                {me.name[0].toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-sm tracking-tight">{me.name} <span className="text-muted-foreground font-normal">(You)</span></h3>
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2">
+                                    <Clock className="h-3 w-3" /> Live Statistics
                                 </div>
                             </div>
-                            <div className="h-4 w-full bg-muted/50 rounded-full overflow-hidden border border-border/50 p-0.5">
+                        </div>
+
+                        <div className="flex-1 max-w-md hidden md:block">
+                            <div className="flex justify-between text-[10px] font-black uppercase text-muted-foreground/60 mb-1">
+                                <span>Race Completion</span>
+                                <span>{me.progress}%</span>
+                            </div>
+                            <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden p-0.5 border">
                                 <motion.div 
-                                    className={cn(
-                                        "h-full rounded-full transition-all duration-300", 
-                                        p.finishedAt ? "bg-gradient-to-r from-green-500 to-emerald-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]" : "bg-gradient-to-r from-primary to-cyan-400"
-                                    )}
+                                    className="h-full bg-primary rounded-full"
                                     initial={{ width: 0 }}
-                                    animate={{ width: `${p.progress}%` }}
-                                    transition={{ type: "spring", stiffness: 40, damping: 15 }}
+                                    animate={{ width: `${me.progress}%` }}
                                 />
                             </div>
                         </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
+
+                        <div className="text-right">
+                            <div className="text-2xl font-black text-primary leading-none">{me.wpm}</div>
+                            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">WPM</div>
+                        </div>
+                    </CardContent>
+                </Card>
+            );
+        })()}
 
         {/* TYPING AREA */}
         {room.status === 'in-progress' && playerId && !room.players.find(p => p.id === playerId)?.finishedAt && (() => {
@@ -419,42 +422,100 @@ export default function RoomPage() {
             );
         })()}
 
-        {/* FINISHED STATE FOR USER */}
+        {/* FINISHED STATE & LEADERBOARD */}
         {playerId && room.players.find(p => p.id === playerId)?.finishedAt && (
-             <Card className="bg-green-500/5 dark:bg-green-500/10 border-green-500/20 shadow-2xl relative z-10 overflow-hidden border-2">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
-                <CardContent className="p-12 text-center space-y-6">
-                    <div className="relative inline-block">
-                        <Trophy className="h-20 w-20 mx-auto text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
-                        <motion.div 
-                            className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-black px-2 py-1 rounded-full shadow-lg"
-                            initial={{ scale: 0 }} animate={{ scale: 1 }}
-                        >
-                            FINISH!
-                        </motion.div>
-                    </div>
-                    <div className="space-y-2">
-                        <h3 className="text-4xl font-black tracking-tighter italic">RACE COMPLETE</h3>
-                        <p className="text-muted-foreground font-medium text-lg italic">Impressive speed, racer!</p>
-                    </div>
-                    <div className="flex justify-center gap-8 pt-4">
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-primary">{wpm}</div>
-                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Words Per Min</div>
+             <div className="space-y-8 relative z-10">
+                <Card className="bg-green-500/5 dark:bg-green-500/10 border-green-500/20 shadow-2xl overflow-hidden border-2">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400" />
+                    <CardContent className="p-8 md:p-12 text-center space-y-6">
+                        <div className="relative inline-block">
+                            <Trophy className="h-20 w-20 mx-auto text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
+                            <motion.div 
+                                className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-black px-2 py-1 rounded-full shadow-lg"
+                                initial={{ scale: 0 }} animate={{ scale: 1 }}
+                            >
+                                FINISH!
+                            </motion.div>
                         </div>
-                        <div className="w-px h-12 bg-border" />
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-primary">100%</div>
-                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Accuracy</div>
+                        <div className="space-y-2">
+                            <h3 className="text-4xl font-black tracking-tighter italic">RACE COMPLETE</h3>
+                            <p className="text-muted-foreground font-medium text-lg italic">Impressive speed, racer!</p>
                         </div>
-                    </div>
-                    <div className="pt-6">
-                        <Button onClick={() => router.push('/')} variant="outline" className="px-8 border-2 font-bold hover:bg-primary hover:text-primary-foreground transition-all">
-                            Back to Lobby
-                        </Button>
-                    </div>
-                </CardContent>
-             </Card>
+                        <div className="flex justify-center gap-8 pt-4">
+                            <div className="text-center">
+                                <div className="text-4xl font-black text-primary">{wpm}</div>
+                                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Words Per Min</div>
+                            </div>
+                            <div className="w-px h-12 bg-border" />
+                            <div className="text-center">
+                                <div className="text-4xl font-black text-primary">100%</div>
+                                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Accuracy</div>
+                            </div>
+                        </div>
+                        <div className="pt-6">
+                            <Button onClick={() => router.push('/')} variant="outline" className="px-8 border-2 font-bold hover:bg-primary hover:text-primary-foreground transition-all">
+                                Back to Lobby
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* ROOM LEADERBOARD */}
+                <Card className="border-border/50 shadow-xl bg-card/50 backdrop-blur-md overflow-hidden">
+                    <CardHeader className="border-b bg-muted/20">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                            Final Standings
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-border">
+                            {room.players.slice().sort((a, b) => b.wpm - a.wpm).map((p, idx) => (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    key={p.id} 
+                                    className={cn(
+                                        "flex items-center justify-between p-4 px-6 md:px-8 transition-colors",
+                                        p.id === playerId ? "bg-primary/[0.03]" : "hover:bg-muted/10"
+                                    )}
+                                >
+                                    <div className="flex items-center gap-6">
+                                        <div className={cn(
+                                            "w-8 h-8 rounded-lg flex items-center justify-center font-black italic shadow-inner border",
+                                            idx === 0 ? "bg-yellow-500 text-white border-yellow-400" : 
+                                            idx === 1 ? "bg-slate-300 text-slate-700 border-slate-200" : 
+                                            idx === 2 ? "bg-amber-600 text-white border-amber-500" : 
+                                            "bg-muted text-muted-foreground border-transparent"
+                                        )}>
+                                            {idx + 1}
+                                        </div>
+                                        <div>
+                                            <div className={cn("font-bold text-base flex items-center gap-2", p.id === playerId && "text-primary")}>
+                                                {p.name}
+                                                {p.id === playerId && <span className="text-[10px] bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">You</span>}
+                                            </div>
+                                            <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Racer ID: {p.id.slice(0, 8)}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-8">
+                                        <div className="text-right hidden sm:block">
+                                            <div className="text-muted-foreground text-[10px] uppercase font-bold">Progress</div>
+                                            <div className="font-mono text-sm font-bold">{p.progress}%</div>
+                                        </div>
+                                        <div className="text-right min-w-[80px]">
+                                            <div className="text-primary text-[10px] uppercase font-black tracking-tighter">Speed</div>
+                                            <div className="text-xl font-black italic">{p.wpm} <span className="text-[10px] not-italic text-muted-foreground">WPM</span></div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+             </div>
         )}
     </div>
   )
