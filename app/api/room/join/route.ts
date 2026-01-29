@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Room } from '@prisma/client'
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
 
     const room = await prisma.room.findUnique({
       where: { code }
-    })
+    }) as Room | null
 
     if (!room) {
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })
