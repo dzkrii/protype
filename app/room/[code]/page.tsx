@@ -320,56 +320,104 @@ export default function RoomPage() {
         </Card>
 
         {/* TYPING AREA */}
-        {room.status === 'in-progress' && playerId && !room.players.find(p => p.id === playerId)?.finishedAt && (
-            <Card className="border-border/50 shadow-2xl bg-card border-2 relative z-10">
-                <CardContent className="p-8 md:p-12 space-y-8">
-                    {/* Visual Text Rendering with User Input Highlight */}
-                    <div className="text-2xl md:text-3xl font-mono leading-relaxed select-none relative transition-all">
-                        {/* Overlay text */}
-                        <div className="text-muted-foreground/30 whitespace-pre-wrap break-words">
-                           {room.text}
-                        </div>
-                        {/* Input match overlay */}
-                         <div className="absolute top-0 left-0 pointer-events-none whitespace-pre-wrap break-words w-full">
-                            <span className="text-foreground border-b-2 border-primary bg-primary/5">
-                              {room.text.substring(0, inputBuffer.length)}
-                            </span>
-                            {/* Blinking cursor effect */}
-                            <span className="inline-block w-0.5 h-[1.2em] bg-primary animate-pulse align-middle ml-0.5" />
-                        </div>
-                    </div>
+        {room.status === 'in-progress' && playerId && !room.players.find(p => p.id === playerId)?.finishedAt && (() => {
+            // Find the first mismatch
+            let firstMismatch = 0;
+            while (
+                firstMismatch < inputBuffer.length && 
+                firstMismatch < room.text.length && 
+                inputBuffer[firstMismatch] === room.text[firstMismatch]
+            ) {
+                firstMismatch++;
+            }
+            const isTypo = inputBuffer.length > firstMismatch;
 
-                    <div className="relative pt-4">
-                        <Input 
-                            value={inputBuffer}
-                            onChange={handleTyping}
-                            className="font-mono text-xl p-8 bg-muted/20 border-2 focus:ring-4 focus:ring-primary/10 transition-all rounded-xl"
-                            placeholder="Type the text above as fast as you can..."
-                            autoFocus
-                            onPaste={(e) => e.preventDefault()}
-                            autoComplete="off"
-                            autoCorrect="off"
-                            autoCapitalize="off"
-                            spellCheck="false"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                             <div className="flex flex-col items-end">
-                                <span className="text-2xl font-black text-primary">{wpm}</span>
-                                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">WPM</span>
-                             </div>
+            return (
+                <Card className={cn(
+                    "border-border/50 shadow-2xl bg-card border-2 relative z-10 transition-all duration-300",
+                    isTypo && "border-destructive/50 ring-4 ring-destructive/10"
+                )}>
+                    <CardContent className="p-8 md:p-12 space-y-8">
+                        {/* Visual Text Rendering with User Input Highlight */}
+                        <div className="text-2xl md:text-3xl font-mono leading-relaxed select-none relative transition-all">
+                            {/* Base text (remaining) */}
+                            <div className="text-muted-foreground/30 whitespace-pre-wrap break-words">
+                               <span className="invisible">{room.text.substring(0, inputBuffer.length)}</span>
+                               {room.text.substring(inputBuffer.length)}
+                            </div>
+                            
+                            {/* Highlight overlay */}
+                             <div className="absolute top-0 left-0 pointer-events-none whitespace-pre-wrap break-words w-full">
+                                {/* Correct characters */}
+                                <span className="text-primary border-b-2 border-primary bg-primary/5">
+                                  {room.text.substring(0, firstMismatch)}
+                                </span>
+                                
+                                {/* Typos (Incorrect characters) */}
+                                {isTypo && (
+                                    <span className="text-destructive border-b-2 border-destructive bg-destructive/10">
+                                      {room.text.substring(firstMismatch, inputBuffer.length)}
+                                    </span>
+                                )}
+                                
+                                {/* Blinking cursor */}
+                                <motion.span 
+                                    className={cn("inline-block w-0.5 h-[1.2em] align-middle ml-0.5", isTypo ? "bg-destructive" : "bg-primary")}
+                                    animate={{ opacity: [1, 0, 1] }}
+                                    transition={{ duration: 0.8, repeat: Infinity }}
+                                />
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">
-                        <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Time: Live</span>
-                            <span>Chars: {inputBuffer.length} / {room.text.length}</span>
+
+                        <div className="relative pt-4">
+                            <Input 
+                                value={inputBuffer}
+                                onChange={handleTyping}
+                                className={cn(
+                                    "font-mono text-xl p-8 bg-muted/20 border-2 transition-all rounded-xl",
+                                    isTypo ? "border-destructive focus-visible:ring-destructive/20" : "focus-visible:ring-primary/10"
+                                )}
+                                placeholder="Type the text above as fast as you can..."
+                                autoFocus
+                                onPaste={(e) => e.preventDefault()}
+                                autoComplete="off"
+                                autoCorrect="off"
+                                autoCapitalize="off"
+                                spellCheck="false"
+                            />
+                            {isTypo && (
+                                <motion.div 
+                                    initial={{ x: -2 }}
+                                    animate={{ x: 2 }}
+                                    transition={{ repeat: 5, duration: 0.05, repeatType: "reverse" }}
+                                    className="absolute -top-1 left-4 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded shadow-sm"
+                                >
+                                    TYPO DETECTED
+                                </motion.div>
+                            )}
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                 <div className="flex flex-col items-end">
+                                    <span className={cn("text-2xl font-black transition-colors", isTypo ? "text-destructive" : "text-primary")}>
+                                        {wpm}
+                                    </span>
+                                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">WPM</span>
+                                 </div>
+                            </div>
                         </div>
-                        <div>ProType Engine v1.0</div>
-                    </div>
-                </CardContent>
-            </Card>
-        )}
+                        
+                        <div className="flex justify-between items-center text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">
+                            <div className="flex items-center gap-4">
+                                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Time: Live</span>
+                                <span className={cn(isTypo && "text-destructive/60 animate-pulse")}>
+                                    Chars: {inputBuffer.length} / {room.text.length}
+                                </span>
+                            </div>
+                            <div>ProType Engine v1.0</div>
+                        </div>
+                    </CardContent>
+                </Card>
+            );
+        })()}
 
         {/* FINISHED STATE FOR USER */}
         {playerId && room.players.find(p => p.id === playerId)?.finishedAt && (
